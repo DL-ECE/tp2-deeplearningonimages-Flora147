@@ -607,7 +607,7 @@ def display_10_images(dataset):
 #image = fmnist_train.dataset.data[1]
 #print(target)
 #plot_one_tensor(image)
-plot_one_tensor(fmnist_val.dataset.data[1])
+#plot_one_tensor(fmnist_val.dataset.data[1])
 #print(fmnist_train.dataset.data.shape)
 #print(fmnist_val.dataset.data.shape)
 #display_10_images(fmnist_train.dataset)
@@ -690,11 +690,11 @@ class CNNModel(nn.Module):
         x = self.flat(x)
         x = input.reshape(input.size(0), -1)
         x = self.l1(x)
-        #x = self.activation(x)
+        x = self.activation(x)
         x = self.l2(x)
-        #x = self.activation(x)
+        x = self.activation(x)
         x = self.l3(x)
-        #x = self.activation(x)
+        x = self.activation(x)
         x = self.l4(x)
 
         y = self.last_activation(x)
