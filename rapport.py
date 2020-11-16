@@ -775,7 +775,7 @@ Same as TP 1 please write a short description of your experiment
 # Concernant le modèle du CNN : J'ai suivi l'exemple proposé en enlevant une dense layer. Puis, après plusieurs tests sur les channels input et output
 # des convolutions, j'ai choisi l'architecture qui me donnait le meilleur résultat. J'ai utilisé des kernel de taille 3x3.
 # J'ai choisi la fonction d'activation ReLU (rectified linear unit function), plutôt que Sigmoïd qui était moins performante.
-# Lorsque training Epoch<30, le Result Test dataset oscille autour de 89-90% avant d'atteindre >=90%, tandis que le Result Training dataset est >93%.
+# Lorsque training Epoch<30, le Result Test dataset oscille autour de 89-90% avant d'atteindre >90.0%, tandis que le Result Training dataset est >93%.
 
 """# BONUS 
 
