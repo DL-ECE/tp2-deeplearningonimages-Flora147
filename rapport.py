@@ -570,7 +570,7 @@ def convolution_forward_torch(image, kernel):
 
     #compute convolution
     R = F.conv2d(image,kernel)
-    return R.numpy().reshape()
+    return R
 
 """In pytorch you can also access other layer like convolution2D, pooling layers, for example in the following cell use the __torch.nn.MaxPool2d__ to redduce the image size."""
 
