@@ -565,15 +565,25 @@ Now let's use pytorch convolution layer to do the forward pass. Use the document
 
 def convolution_forward_torch(image, kernel):
     # YOUR CODE HERE 
-    conv = torch.nn.Conv2d(1,1,kernel_size=kernel.shape[0])
-    image = conv(image)
+    #numpy to tensor
+    image = image.reshape(1,1,image.shape[0],image.shape[1])
+    image = torch.Tensor(image)
+    kernel = kernel.reshape(1,1,kernel.shape[0],kernel.shape[1])
+    kernel = torch.Tensor(kernel)
+
+    #compute convolution
+    R = F.conv2d(image,kernel)
+    return R
 
 """In pytorch you can also access other layer like convolution2D, pooling layers, for example in the following cell use the __torch.nn.MaxPool2d__ to redduce the image size."""
 
-#conv = convolution_forward_torch(image,kernel)
-#image = conv(image)
-pool = torch.nn.MaxPool2d(2,2)
-#image = pool(image)
+#Load I on previous question (part 1 what is a convolution)
+print(I)
+pool = nn.MaxPool2d(2,2)
+I = I.reshape(1,1,I.shape[0],I.shape[1])
+I = torch.Tensor(I)
+I = pool(I)
+print(I)
 
 """# Part 2: Using convolution neural network to recognize digits
 
@@ -600,16 +610,9 @@ def display_10_images(dataset):
     # YOUR CODE HERE 
     for i in range(0,10) :
         target = dataset.targets[i]
+        print(target)
         plot_one_tensor(dataset.data[i])
 
-#image,target=fmnist_train.dataset[0]
-#target=fmnist_train.dataset[0]
-#image = fmnist_train.dataset.data[1]
-#print(target)
-#plot_one_tensor(image)
-#plot_one_tensor(fmnist_val.dataset.data[1])
-#print(fmnist_train.dataset.data.shape)
-#print(fmnist_val.dataset.data.shape)
 #display_10_images(fmnist_train.dataset)
 #display_10_images(fmnist_val.dataset)
 
@@ -619,15 +622,20 @@ What are the different classes
 """
 
 def fashion_mnist_dataset_answer():
-    shape = [28,28]  # replace None with the value you found
+    shape = 28  # replace None with the value you found
     number_of_images_in_train_set = 60000
     number_of_images_in_test_set = 10000
     number_of_classes = 10
     return {'shape': shape, 'nb_in_train_set': number_of_images_in_train_set, 'nb_in_test_set': number_of_images_in_test_set, 'number_of_classes': number_of_classes}
 
+print(fmnist_train.shape)
+print(fmnist_train.dataset.data[0].shape)
+student_result = fashion_mnist_dataset_answer()
+print(student_result["shape"])
+#assert np.allclose(student_result["shape"], 1)
 # Plot an image and the target  
-#plot_one_tensor(fmnist_train.dataset.data[0])
-#print("target: ",fmnist_train.dataset.targets[0])
+plot_one_tensor(fmnist_train.dataset.data[0])
+print("target: ",fmnist_train.dataset.targets[0])
 
 """## Create a convolutional neural network
 
@@ -656,48 +664,63 @@ class CNNModel(nn.Module):
     def __init__(self, classes=10):
         super().__init__()
         # YOUR CODE HERE 
-        self.conv1 = torch.nn.Conv2d(1,10,kernel_size=3)
-        self.conv2 = torch.nn.Conv2d(10,16,kernel_size=3)
-        self.conv3 = torch.nn.Conv2d(16,32,kernel_size=3)
-        self.conv4 = torch.nn.Conv2d(32,64,kernel_size=3)
-        self.conv5 = torch.nn.Conv2d(64,128,kernel_size=3)
+        self.conv1 = nn.Conv2d(1,32,kernel_size=3)
+        self.conv2 = nn.Conv2d(32,64,kernel_size=3)
+        self.conv3 = nn.Conv2d(64,128,kernel_size=3)
+        self.conv4 = nn.Conv2d(128,256,kernel_size=3)
 
-        self.pool = torch.nn.MaxPool2d(2,2)
-        self.flat = torch.nn.Flatten()
+        self.pool = nn.MaxPool2d(2,2)
+        self.flat = nn.Flatten()
 
-        self.l1 = torch.nn.Linear(784, 512)
-        self.l2 = torch.nn.Linear(512, 256)
-        self.l3 = torch.nn.Linear(256, 128)
-        self.l4 = torch.nn.Linear(128, classes)
+        self.l1 = nn.Linear(4096,1024)
+        #self.l2 = nn.Linear(1024,576)
+        self.l2 = nn.Linear(1024, classes)
         
-        self.activation = torch.nn.ReLU()
-        self.last_activation = torch.nn.Softmax(dim=1)
+        self.activation = nn.ReLU()
+        self.last_activation = nn.Softmax(dim=1)
 
     def forward(self, input):
         x = self.conv1(input)
+
         # YOUR CODE HERE 
         x = self.activation(x)
+
+        #print(x.shape)
         x = self.conv2(x)
         x = self.activation(x)
+
+        #print(x.shape)
         x = self.pool(x)
+
+        #print(x.shape)
 
         x = self.conv3(x)
         x = self.activation(x)
+
+        #print(x.shape)
+
         x = self.conv4(x)
         x = self.activation(x)
+
+        #print(x.shape)
         x = self.pool(x)
 
+        #print(x.shape)
+
         x = self.flat(x)
-        x = input.reshape(input.size(0), -1)
+
+        #print(x.shape)
+
         x = self.l1(x)
         x = self.activation(x)
+        #print(x.shape)
+
         x = self.l2(x)
-        x = self.activation(x)
-        x = self.l3(x)
-        x = self.activation(x)
-        x = self.l4(x)
+        #x = self.activation(x)
+        #x = self.l3(x)
 
         y = self.last_activation(x)
+
         return y
 
 def train_one_epoch(model, device, data_loader, optimizer):
@@ -743,7 +766,7 @@ if __name__ == "__main__":
     # Network Hyperparameters 
     # YOUR CODE HERE 
     minibatch_size = 100
-    nepoch = 30
+    nepoch = 40
     learning_rate = 0.05
     momentum = 0
 
@@ -766,8 +789,17 @@ if __name__ == "__main__":
 
 """## Open Analysis
 Same as TP 1 please write a short description of your experiment
+"""
 
-# BONUS 
+# J'ai réalisé plusieurs tests avec différentes valeurs de minibatch et les meilleures accuracy étaient obtenues pour minibatch = 100
+# J'ai augmenté le learning rate à 0,05. Un learning rate de 0,01 n'atteignait pas rapidement une bonne accuracy.
+# Concernant le nombre d'epoch, je l'ai augmenté à 40, ce qui me permettait d'atteindre 90% d'accuracy.
+# Concernant le CNN : J'ai suivi l'exemple proposé en enlevant une dense layer. Puis, après plusieurs tests sur les channels input et output
+# des convolutions, j'ai choisi l'architecture qui me donnait le meilleur résultat. J'ai utilisé des kernel de taille 3x3.
+# J'ai choisi la fonction d'activation ReLU (rectified linear unit function), plutôt que Sigmoïd qui était moins performante.
+# Autour de Epoch = 35, le Result Test dataset oscille autour de 89-90% avant d'atteindre 90%, tandis que le Result Training dataset est >93%.
+
+"""# BONUS 
 
 Use some already trained CNN to segment YOUR image. 
 
