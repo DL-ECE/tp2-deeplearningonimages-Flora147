@@ -514,7 +514,7 @@ def convolution_forward_numpy(image, kernel):
     # YOUR CODE HERE 
     I = np.zeros((image.shape[0]+2,image.shape[1]+2))
     I[1:I.shape[0]-1,1:I.shape[1]-1] = image
-    img = np.zeros((image.shape[0],image.shape[1]))
+    img = np.zeros((kernel.shape[0],kernel.shape[1]))
     R = np.zeros(image.shape)
 
     for k in range(0,I.shape[0]-2) :
@@ -563,14 +563,19 @@ Now let's use pytorch convolution layer to do the forward pass. Use the document
 def convolution_forward_torch(image, kernel):
     # YOUR CODE HERE 
     #numpy to tensor
-    image = image.reshape(1,1,image.shape[0],image.shape[1])
-    image = torch.Tensor(image)
-    kernel = kernel.reshape(1,1,kernel.shape[0],kernel.shape[1])
-    kernel = torch.Tensor(kernel)
+    image_t = image.reshape(1,1,image.shape[0],image.shape[1])
+    image_t = torch.Tensor(image_t)
+    kernel_t = kernel.reshape(1,1,kernel.shape[0],kernel.shape[1])
+    kernel_t = torch.Tensor(kernel_t)
 
     #compute convolution
-    R = F.conv2d(image,kernel)
-    return R
+    R_t = F.conv2d(image_t,kernel_t,padding=1)  
+    
+    #tensor to numpy  
+    R_n = R_t[0,0,:,:].numpy()
+    R_n = R_n.reshape(image.shape[0],image.shape[1])
+
+    return R_n
 
 """In pytorch you can also access other layer like convolution2D, pooling layers, for example in the following cell use the __torch.nn.MaxPool2d__ to redduce the image size."""
 
