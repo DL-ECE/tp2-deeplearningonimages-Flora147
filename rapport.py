@@ -258,8 +258,8 @@ class FFNN(nn.Module):
 
         # We use the built-in activation functions
         # TODO: Maybe try with another activation function ! 
-        self.activation = torch.nn.Sigmoid()
-        # self.activation = torch.nn.ReLU()
+        #self.activation = torch.nn.Sigmoid()
+        self.activation = torch.nn.ReLU()
 
 
         self.last_activation = torch.nn.Softmax(dim=1)
@@ -528,9 +528,6 @@ def convolution_forward_numpy(image, kernel):
 
     return R
 
-R = convolution_forward_numpy(I,K_1)
-print(R)
-
 """Test your implementation on the two previous example and compare the results to the result manually computed."""
 
 assert np.array_equal(convolution_forward_numpy(I, K_0),R_0)
@@ -573,7 +570,7 @@ def convolution_forward_torch(image, kernel):
 
     #compute convolution
     R = F.conv2d(image,kernel)
-    return R
+    return R.numpy().reshape()
 
 """In pytorch you can also access other layer like convolution2D, pooling layers, for example in the following cell use the __torch.nn.MaxPool2d__ to redduce the image size."""
 
@@ -613,6 +610,7 @@ def display_10_images(dataset):
         print(target)
         plot_one_tensor(dataset.data[i])
 
+# si je laisse ces lignes décommentées, l'autograding ne marche pas "name 'fmnist_train' is not defined"
 #display_10_images(fmnist_train.dataset)
 #display_10_images(fmnist_val.dataset)
 
@@ -628,14 +626,9 @@ def fashion_mnist_dataset_answer():
     number_of_classes = 10
     return {'shape': shape, 'nb_in_train_set': number_of_images_in_train_set, 'nb_in_test_set': number_of_images_in_test_set, 'number_of_classes': number_of_classes}
 
-print(fmnist_train.shape)
-print(fmnist_train.dataset.data[0].shape)
-student_result = fashion_mnist_dataset_answer()
-print(student_result["shape"])
-#assert np.allclose(student_result["shape"], 1)
-# Plot an image and the target  
-plot_one_tensor(fmnist_train.dataset.data[0])
-print("target: ",fmnist_train.dataset.targets[0])
+# Plot an image and the target : si je laisse ces lignes décommentées, l'autograding ne marche pas "name 'fmnist_train' is not defined"
+#plot_one_tensor(fmnist_train.dataset.data[0])
+#print("target: ",fmnist_train.dataset.targets[0])
 
 """## Create a convolutional neural network
 
@@ -664,61 +657,41 @@ class CNNModel(nn.Module):
     def __init__(self, classes=10):
         super().__init__()
         # YOUR CODE HERE 
-        self.conv1 = nn.Conv2d(1,32,kernel_size=3)
-        self.conv2 = nn.Conv2d(32,64,kernel_size=3)
-        self.conv3 = nn.Conv2d(64,128,kernel_size=3)
-        self.conv4 = nn.Conv2d(128,256,kernel_size=3)
+        self.conv1 = nn.Conv2d(1,64,kernel_size=3)
+        self.conv2 = nn.Conv2d(64,128,kernel_size=3)
+        self.conv3 = nn.Conv2d(128,256,kernel_size=3)
+        self.conv4 = nn.Conv2d(256,512,kernel_size=3)
 
         self.pool = nn.MaxPool2d(2,2)
         self.flat = nn.Flatten()
 
-        self.l1 = nn.Linear(4096,1024)
-        #self.l2 = nn.Linear(1024,576)
-        self.l2 = nn.Linear(1024, classes)
+        self.l1 = nn.Linear(8192,2048)
+        self.l2 = nn.Linear(2048, classes)
         
         self.activation = nn.ReLU()
         self.last_activation = nn.Softmax(dim=1)
 
     def forward(self, input):
         x = self.conv1(input)
-
         # YOUR CODE HERE 
         x = self.activation(x)
-
-        #print(x.shape)
         x = self.conv2(x)
         x = self.activation(x)
 
-        #print(x.shape)
         x = self.pool(x)
-
-        #print(x.shape)
 
         x = self.conv3(x)
         x = self.activation(x)
-
-        #print(x.shape)
-
         x = self.conv4(x)
         x = self.activation(x)
 
-        #print(x.shape)
         x = self.pool(x)
-
-        #print(x.shape)
 
         x = self.flat(x)
 
-        #print(x.shape)
-
         x = self.l1(x)
         x = self.activation(x)
-        #print(x.shape)
-
         x = self.l2(x)
-        #x = self.activation(x)
-        #x = self.l3(x)
-
         y = self.last_activation(x)
 
         return y
@@ -732,7 +705,7 @@ def train_one_epoch(model, device, data_loader, optimizer):
         output = model(data)
 
         # YOUR CODE HERE 
-        loss = F.cross_entropy(output, target) #
+        loss = F.cross_entropy(output, target)
         loss.backward()
         train_loss += loss.item()
         optimizer.step()
@@ -753,7 +726,7 @@ def evaluation(model, device, data_loader):
         data, target = data.to(device), target.to(device)
         output = model(data)
         # YOUR CODE HERE 
-        eval_loss += F.cross_entropy(output, target).item() #
+        eval_loss += F.cross_entropy(output, target).item()
         prediction = output.argmax(dim=1)
         correct += torch.sum(prediction.eq(target)).item()
     result = {'loss': eval_loss / len(data_loader.dataset),
@@ -791,13 +764,13 @@ if __name__ == "__main__":
 Same as TP 1 please write a short description of your experiment
 """
 
-# J'ai réalisé plusieurs tests avec différentes valeurs de minibatch et les meilleures accuracy étaient obtenues pour minibatch = 100
-# J'ai augmenté le learning rate à 0,05. Un learning rate de 0,01 n'atteignait pas rapidement une bonne accuracy.
-# Concernant le nombre d'epoch, je l'ai augmenté à 40, ce qui me permettait d'atteindre 90% d'accuracy.
-# Concernant le CNN : J'ai suivi l'exemple proposé en enlevant une dense layer. Puis, après plusieurs tests sur les channels input et output
+# J'ai réalisé plusieurs tests avec différentes valeurs de minibatch_size et les meilleures accuracy étaient obtenues pour minibatch_size = 100.
+# J'ai augmenté learning_rate à 0,05. Un learning_rate de 0,01 n'atteignait pas assez rapidement une bonne accuracy.
+# Concernant le nombre d'epoch (nepoch), je l'ai augmenté à 40, ce qui me permettait d'atteindre 90% d'accuracy.
+# Concernant le modèle du CNN : J'ai suivi l'exemple proposé en enlevant une dense layer. Puis, après plusieurs tests sur les channels input et output
 # des convolutions, j'ai choisi l'architecture qui me donnait le meilleur résultat. J'ai utilisé des kernel de taille 3x3.
 # J'ai choisi la fonction d'activation ReLU (rectified linear unit function), plutôt que Sigmoïd qui était moins performante.
-# Autour de Epoch = 35, le Result Test dataset oscille autour de 89-90% avant d'atteindre 90%, tandis que le Result Training dataset est >93%.
+# Lorsque training Epoch<30, le Result Test dataset oscille autour de 89-90% avant d'atteindre >=90%, tandis que le Result Training dataset est >93%.
 
 """# BONUS 
 
